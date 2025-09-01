@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres de la partie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+    }
+
+    h2 {
+      margin-top: 30px;
+      font-size: 1.5rem;
+    }
+
+    .roles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .role {
+      background: #333;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .role label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .role input {
+      width: 60px;
+      padding: 5px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      background: #333;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #444;
+    }
+
+    tr:nth-child(even) {
+      background: #2a2a2a;
+    }
+
+    tr:nth-child(odd) {
+      background: #3a3a3a;
+    }
+
+    input[type="text"] {
+      width: 90%;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+
+    button {
+      background-color: #ff4444;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background-color: #cc0000;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Paramètres de la partie</h1>
+
+  <h2>Choix des rôles :</h2>
+  <div class="roles">
+    <div class="role"><label for="villagois">Villageois</label><input type="number" id="villagois" value="0" min="0"></div>
+    <div class="role"><label for="loups">Loup Garous</label><input type="number" id="loups" value="0" min="0"></div>
+    <div class="role"><label for="sorciere">Sorcière</label><input type="number" id="sorciere" value="0" min="0"></div>
+    <div class="role"><label for="voyante">Voyante</label><input type="number" id="voyante" value="0" min="0"></div>
+    <div class="role"><label for="cupidon">Cupidon</label><input type="number" id="cupidon" value="0" min="0"></div>
+    <div class="role"><label for="chasseur">Chasseur</label><input type="number" id="chasseur" value="0" min="0"></div>
+    <div class="role"><label for="petiteFille">Petite Fille</label><input type="number" id="petiteFille" value="0" min="0"></div>
+    <div class="role"><label for="voleur">Voleur</label><input type="number" id="voleur" value="0" min="0"></div>
+  </div>
+
+  <div class="buttons">
+    <button id="auto">🎲 Choix automatique</button>
+  </div>
+
+  <h2>Joueurs :</h2>
+  <table id="tableJoueurs">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nom du joueur</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Généré en JS -->
+    </tbody>
+  </table>
+
+  <div class="buttons">
+    <button id="retour">⬅ Retour</button>
+    <button id="valider">✅ Valider</button>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    // Récupère le nombre de joueurs depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const nbJoueurs = parseInt(urlParams.get("joueurs")) || 8;
+
+    const tableBody = document.querySelector("#tableJoueurs tbody");
+
+    // Génère les lignes du tableau joueurs
+    for (let i = 1; i <= nbJoueurs; i++) {
+      const row = document.createElement("tr");
+      const cellIndex = document.createElement("td");
+      cellIndex.textContent = i;
+
+      const cellName = document.createElement("td");
+      const inputName = document.createElement("input");
+      inputName.type = "text";
+      inputName.placeholder = "Nom joueur " + i;
+      cellName.appendChild(inputName);
+
+      row.appendChild(cellIndex);
+      row.appendChild(cellName);
+      tableBody.appendChild(row);
+    }
+
+    // Bouton retour
+    document.getElementById("retour").addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+    // Répartition automatique conseillée
+    const repartition = {
+      8:  { chasseur:1, cupidon:0, loups:2, petiteFille:1, villagois:2, sorciere:1, voleur:0, voyante:1 },
+      9:  { chasseur:1, cupidon:1, loups:2, petiteFille:1, villagois:2, sorciere:1, voleur:0, voyante:1 },
+      10: { chasseur:1, cupidon:1, loups:2, petiteFille:1, villagois:2, sorciere:1, voleur:1, voyante:1 },
+      11: { chasseur:1, cupidon:1, loups:2, petiteFille:1, villagois:3, sorciere:1, voleur:1, voyante:1 },
+      12: { chasseur:1, cupidon:1, loups:3, petiteFille:1, villagois:3, sorciere:1, voleur:1, voyante:1 },
+      13: { chasseur:1, cupidon:1, loups:3, petiteFille:1, villagois:4, sorciere:1, voleur:1, voyante:1 },
+      14: { chasseur:1, cupidon:1, loups:4, petiteFille:1, villagois:4, sorciere:1, voleur:1, voyante:1 },
+      15: { chasseur:1, cupidon:1, loups:4, petiteFille:1, villagois:5, sorciere:1, voleur:1, voyante:1 },
+      16: { chasseur:1, cupidon:1, loups:4, petiteFille:1, villagois:6, sorciere:1, voleur:1, voyante:1 }
+    };
+
+    document.getElementById("auto").addEventListener("click", () => {
+      if (repartition[nbJoueurs]) {
+        Object.keys(repartition[nbJoueurs]).forEach(role => {
+          document.getElementById(role).value = repartition[nbJoueurs][role];
+        });
+        document.getElementById("message").style.color = "lightblue";
+        document.getElementById("message").textContent = "🎲 Répartition automatique appliquée pour " + nbJoueurs + " joueurs.";
+      } else {
+        document.getElementById("message").style.color = "orange";
+        document.getElementById("message").textContent = "⚠ Pas de configuration automatique pour " + nbJoueurs + " joueurs.";
+      }
+    });
+
+    // Bouton valider
+    document.getElementById("valider").addEventListener("click", () => {
+      const roles = ["villagois","loups","sorciere","voyante","cupidon","chasseur","petiteFille","voleur"];
+      let total = 0;
+      roles.forEach(r => total += parseInt(document.getElementById(r).value) || 0);
+
+      const message = document.getElementById("message");
+      if (total === nbJoueurs) {
+        message.style.color = "lightgreen";
+        message.textContent = "✅ Paramètres valides : " + total + " rôles pour " + nbJoueurs + " joueurs.";
+      } else {
+        message.style.color = "red";
+        message.textContent = "❌ Erreur : " + total + " rôles choisis pour " + nbJoueurs + " joueurs.";
+      }
+    });
+  </script>
+</body>
+</html>
