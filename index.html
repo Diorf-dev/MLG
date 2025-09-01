@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loup Garoup</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: white;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+    }
+
+    label {
+      margin: 1rem 0 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 2rem;
+    }
+
+    a {
+      text-decoration: none;
+      background-color: #ff4444;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      transition: 0.2s;
+    }
+
+    a:hover {
+      background-color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Loup Garoup</h1>
+
+  <label for="nbJoueurs">Nombre de joueurs :</label>
+  <select id="nbJoueurs">
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+    <option value="10">10</option>
+    <option value="11">11</option>
+    <option value="12">12</option>
+    <option value="13">13</option>
+    <option value="14">14</option>
+    <option value="15">15</option>
+  </select>
+
+  <a id="jouerBtn" href="#">Jouer</a>
+
+  <script>
+    const jouerBtn = document.getElementById("jouerBtn");
+    const nbJoueurs = document.getElementById("nbJoueurs");
+
+    jouerBtn.addEventListener("click", () => {
+      const joueurs = nbJoueurs.value;
+      // Redirige vers jeu.html avec le nombre de joueurs en paramètre
+      window.location.href = "jeu.html?joueurs=" + joueurs;
+    });
+  </script>
+</body>
+</html>
