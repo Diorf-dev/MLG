@@ -209,16 +209,55 @@
       }
     });
 
+    // Fonction pour mélanger un tableau
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
     // Bouton valider
     document.getElementById("valider").addEventListener("click", () => {
       const roles = ["villagois","loups","sorciere","voyante","cupidon","chasseur","petiteFille","voleur"];
       let total = 0;
-      roles.forEach(r => total += parseInt(document.getElementById(r).value) || 0);
+      let listeRoles = [];
+
+      roles.forEach(r => {
+        const count = parseInt(document.getElementById(r).value) || 0;
+        total += count;
+        for (let i = 0; i < count; i++) {
+          listeRoles.push(r.charAt(0).toUpperCase() + r.slice(1)); // met une majuscule
+        }
+      });
 
       const message = document.getElementById("message");
       if (total === nbJoueurs) {
+        // Mélanger les rôles
+        listeRoles = shuffle(listeRoles);
+
+        // Récupérer les noms des joueurs
+        const noms = Array.from(document.querySelectorAll("#tableJoueurs input"))
+          .map((input, i) => input.value.trim() || "Joueur " + (i+1));
+
+        // Associer joueur + rôle
+        const joueursAvecRoles = noms.map((nom, i) => ({
+          nom: nom,
+          role: listeRoles[i]
+        }));
+
+        // Sauvegarder dans localStorage
+        localStorage.setItem("roles", JSON.stringify(joueursAvecRoles));
+
         message.style.color = "lightgreen";
         message.textContent = "✅ Paramètres valides : " + total + " rôles pour " + nbJoueurs + " joueurs.";
+
+        // Rediriger vers la page des rôles
+        setTimeout(() => {
+          window.location.href = "roles.html";
+        }, 1000);
+
       } else {
         message.style.color = "red";
         message.textContent = "❌ Erreur : " + total + " rôles choisis pour " + nbJoueurs + " joueurs.";
