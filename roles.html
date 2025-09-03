@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Révélation des rôles</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+
+    #playerName {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    #role {
+      font-size: 1.8rem;
+      margin-top: 20px;
+      color: lightgreen;
+      display: none;
+    }
+
+    button {
+      background-color: #ff4444;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background-color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Révélation des rôles</h1>
+  <div id="playerName"></div>
+  <div id="role"></div>
+  <button id="revealBtn">Révéler le rôle</button>
+  <button id="nextBtn" style="display:none;">Suivant</button>
+
+  <script>
+    // Récupérer les rôles + noms depuis localStorage
+    const joueurs = JSON.parse(localStorage.getItem("roles")) || [];
+    let currentIndex = 0;
+
+    const playerName = document.getElementById("playerName");
+    const roleDiv = document.getElementById("role");
+    const revealBtn = document.getElementById("revealBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function afficherJoueur() {
+      if (currentIndex < joueurs.length) {
+        playerName.textContent = joueurs[currentIndex].nom;
+        roleDiv.style.display = "none";
+        revealBtn.style.display = "inline-block";
+        nextBtn.style.display = "none";
+      } else {
+        playerName.textContent = "Tous les rôles ont été révélés 🎉";
+        roleDiv.style.display = "none";
+        revealBtn.style.display = "none";
+        nextBtn.style.display = "none";
+      }
+    }
+
+    revealBtn.addEventListener("click", () => {
+      roleDiv.textContent = joueurs[currentIndex].role;
+      roleDiv.style.display = "block";
+      revealBtn.style.display = "none";
+      nextBtn.style.display = "inline-block";
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentIndex++;
+      afficherJoueur();
+    });
+
+    // Démarrage
+    afficherJoueur();
+  </script>
+</body>
+</html>
