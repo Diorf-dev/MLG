@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Première nuit</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    audio {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌙 Première nuit</h1>
+
+  <!-- Musique de fond -->
+  <audio id="bgMusic" autoplay loop>
+    <source src="musique.mp3" type="audio/mpeg">
+    Votre navigateur ne supporte pas l'audio.
+  </audio>
+
+  <p>La nuit tombe sur le village... Les loups-garous vont se réveiller.</p>
+
+  <script>
+    // Forcer la lecture automatique (parfois bloquée par le navigateur)
+    const music = document.getElementById("bgMusic");
+    document.addEventListener("click", () => {
+      if (music.paused) {
+        music.play();
+      }
+    });
+  </script>
+</body>
+</html>
