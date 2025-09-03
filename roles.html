@@ -35,6 +35,14 @@
       display: none;
     }
 
+    .btn-group {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
     button {
       background-color: #ff4444;
       border: none;
@@ -43,12 +51,16 @@
       font-size: 1rem;
       border-radius: 10px;
       cursor: pointer;
-      margin: 10px;
       transition: 0.2s;
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
       background-color: #cc0000;
+    }
+
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -56,43 +68,82 @@
   <h1>Révélation des rôles</h1>
   <div id="playerName"></div>
   <div id="role"></div>
-  <button id="revealBtn">Révéler le rôle</button>
-  <button id="nextBtn" style="display:none;">Suivant</button>
+
+  <div class="btn-group">
+    <button id="toggleRoleBtn">Montrer le rôle</button>
+  </div>
+
+  <div class="btn-group">
+    <button id="prevBtn">⬅️ Précédent</button>
+    <button id="nextBtn">➡️ Suivant</button>
+  </div>
+
+  <!-- Nouveau bouton pour passer à la nuit -->
+  <div class="btn-group">
+    <button id="validerBtn">🌙 Valider et commencer la nuit</button>
+  </div>
 
   <script>
     // Récupérer les rôles + noms depuis localStorage
     const joueurs = JSON.parse(localStorage.getItem("roles")) || [];
     let currentIndex = 0;
+    let roleVisible = false;
 
     const playerName = document.getElementById("playerName");
     const roleDiv = document.getElementById("role");
-    const revealBtn = document.getElementById("revealBtn");
+    const toggleRoleBtn = document.getElementById("toggleRoleBtn");
+    const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
+    const validerBtn = document.getElementById("validerBtn");
 
     function afficherJoueur() {
       if (currentIndex < joueurs.length) {
         playerName.textContent = joueurs[currentIndex].nom;
         roleDiv.style.display = "none";
-        revealBtn.style.display = "inline-block";
-        nextBtn.style.display = "none";
+        roleVisible = false;
+        toggleRoleBtn.textContent = "Montrer le rôle";
       } else {
         playerName.textContent = "Tous les rôles ont été révélés 🎉";
         roleDiv.style.display = "none";
-        revealBtn.style.display = "none";
-        nextBtn.style.display = "none";
+        toggleRoleBtn.style.display = "none";
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
       }
+
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= joueurs.length - 1;
     }
 
-    revealBtn.addEventListener("click", () => {
-      roleDiv.textContent = joueurs[currentIndex].role;
-      roleDiv.style.display = "block";
-      revealBtn.style.display = "none";
-      nextBtn.style.display = "inline-block";
+    toggleRoleBtn.addEventListener("click", () => {
+      if (roleVisible) {
+        roleDiv.style.display = "none";
+        toggleRoleBtn.textContent = "Montrer le rôle";
+        roleVisible = false;
+      } else {
+        roleDiv.textContent = joueurs[currentIndex].role;
+        roleDiv.style.display = "block";
+        toggleRoleBtn.textContent = "Cacher le rôle";
+        roleVisible = true;
+      }
     });
 
     nextBtn.addEventListener("click", () => {
-      currentIndex++;
-      afficherJoueur();
+      if (currentIndex < joueurs.length - 1) {
+        currentIndex++;
+        afficherJoueur();
+      }
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        afficherJoueur();
+      }
+    });
+
+    // Bouton valider → page nuit
+    validerBtn.addEventListener("click", () => {
+      window.location.href = "nuit.html";
     });
 
     // Démarrage
