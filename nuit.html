@@ -18,35 +18,356 @@
       text-align: center;
     }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+    h1 { font-size: 2.5rem; margin-bottom: 20px; }
+
+    #roleName {
+      font-size: 2rem;
+      margin: 20px 0;
+      color: lightgreen;
+      min-height: 2.2rem;
     }
 
-    audio {
-      margin-top: 20px;
+    #roleResult {
+      font-size: 1.5rem;
+      color: #ffff66;
+      min-height: 1.5rem;
+      margin-bottom: 10px;
+      white-space: pre-line;
     }
+
+    #playersList { margin-top: 10px; }
+
+    #playersList button {
+      background-color: #ff4444;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #playersList button.selected { background-color: lightgreen; }
+    #playersList button.victime { background-color: orange; }
+    #playersList button:hover { background-color: #cc0000; }
+
+    .controls { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      background-color: #0077ff;
+    }
+
+    .btn:hover { background-color: #0055cc; }
   </style>
 </head>
 <body>
-  <h1>🌙 Première nuit</h1>
+<h1>🌙 Première nuit</h1>
+<p id="introText">Clique sur “Démarrer la nuit” pour lancer la voix d’intro.</p>
+<div id="roleName"></div>
+<div id="roleResult"></div>
+<div id="playersList"></div>
+<div class="controls">
+  <button id="startBtn" class="btn">▶️ Démarrer la nuit</button>
+  <button id="nextRoleBtn" class="btn" style="display:none;">Confirmer ✅</button>
+</div>
 
-  <!-- Musique de fond -->
-  <audio id="bgMusic" autoplay loop>
-    <source src="musique.mp3" type="audio/mpeg">
-    Votre navigateur ne supporte pas l'audio.
-  </audio>
+<audio id="voicePlayer"></audio>
+<audio id="bgMusic" loop hidden>
+  <source src="audio/ambiance.mp3" type="audio/mpeg">
+</audio>
+<audio id="effectPlayer"></audio>
 
-  <p>La nuit tombe sur le village... Les loups-garous vont se réveiller.</p>
+<script>
+const joueurs = JSON.parse(localStorage.getItem("roles")) || [];
 
-  <script>
-    // Forcer la lecture automatique (parfois bloquée par le navigateur)
-    const music = document.getElementById("bgMusic");
-    document.addEventListener("click", () => {
-      if (music.paused) {
-        music.play();
+const ordreRoles = ["Cupidon","Voyante","Loup Garou","Sorcière","Voleur"];
+const rolesPresents = ordreRoles.filter(role => joueurs.some(j => j.role === role));
+
+const audioFiles = {
+  intro:"audio/intro.mp3",
+  "Cupidon":"audio/cupidon.mp3",
+  "Voyante":"audio/voyante.mp3",
+  "Loup Garou":"audio/loup.mp3",
+  "Sorcière":"audio/sorciere.mp3",
+  "Voleur":"audio/voleur.mp3",
+  fin:"audio/fin.mp3"
+};
+
+// Audio selon le nombre d'éliminations
+const audioFinNuit = {
+  0: "audio/fin_0.mp3",
+  1: "audio/fin_1.mp3",
+  2: "audio/fin_2.mp3"
+};
+
+const closeEyes = {
+  "Cupidon":"audio/closeeyes_cupidon.mp3",
+  "Voyante":"audio/closeeyes_voyante.mp3",
+  "Loup Garou":"audio/closeeyes_loup.mp3",
+  "Sorcière":"audio/closeeyes_sorciere.mp3",
+  "Voleur":"audio/closeeyes_voleur.mp3"
+};
+
+const roleName = document.getElementById("roleName");
+const roleResult = document.getElementById("roleResult");
+const playersList = document.getElementById("playersList");
+const nextRoleBtn = document.getElementById("nextRoleBtn");
+const startBtn = document.getElementById("startBtn");
+const voicePlayer = document.getElementById("voicePlayer");
+const effectPlayer = document.getElementById("effectPlayer");
+const introText = document.getElementById("introText");
+const bgMusic = document.getElementById("bgMusic");
+
+bgMusic.volume = 0.1;
+
+let phase="idle";
+let currentRoleIndex=-1;
+let couples=[];
+let victimeLoup=null;
+let victimeSauvée=null;
+let victimePoison=null;
+
+function actionCupidon(){
+  introText.textContent="Cupidon, choisis 2 joueurs à rendre amoureux.";
+  roleResult.textContent="";
+  playersList.innerHTML="";
+  let selection=[];
+  joueurs.forEach(j=>{
+    const btn=document.createElement("button");
+    btn.textContent=j.nom;
+    playersList.appendChild(btn);
+    btn.addEventListener("click",()=>{
+      if(!selection.includes(j.nom)){selection.push(j.nom); btn.classList.add("selected");}
+      if(selection.length===2){
+        couples=selection;
+        roleResult.textContent=`Les amoureux sont ${selection[0]} ❤️ ${selection[1]}`;
+        playersList.innerHTML="";
+        nextRoleBtn.style.display="inline-block";
       }
     });
-  </script>
+  });
+}
+
+function actionVoyante(){
+  introText.textContent="Voyante, choisis un joueur à inspecter.";
+  roleResult.textContent="";
+  playersList.innerHTML="";
+  joueurs.forEach(j=>{
+    const btn=document.createElement("button");
+    btn.textContent=j.nom;
+    playersList.appendChild(btn);
+    btn.addEventListener("click",()=>{
+      roleResult.textContent=`${j.nom} est ${j.role}`;
+      playersList.innerHTML="";
+      nextRoleBtn.style.display="inline-block";
+    });
+  });
+}
+
+function actionLoupsGarous(){
+  introText.textContent="Loups-Garous, choisissez un joueur à éliminer.";
+  roleResult.textContent="";
+  playersList.innerHTML="";
+  let selection=null;
+  joueurs.forEach(j=>{
+    const btn=document.createElement("button");
+    btn.textContent=j.nom;
+    playersList.appendChild(btn);
+    btn.addEventListener("click",()=>{
+      selection=j.nom;
+      roleResult.textContent=`Les Loups-Garous ciblent : ${selection}`;
+      joueurs.forEach(p=>{
+        const b=Array.from(playersList.children).find(x=>x.textContent===p.nom);
+        if(b) b.classList.remove("victime");
+      });
+      btn.classList.add("victime");
+      victimeLoup=selection;
+      nextRoleBtn.style.display="inline-block";
+    });
+  });
+}
+
+function actionSorciere(){
+  introText.textContent="Sorcière, tu peux sauver la victime et/ou empoisonner un joueur, ou passer ton tour.";
+  roleResult.textContent="";
+  playersList.innerHTML="";
+  victimeSauvée=null;
+  victimePoison=null;
+
+  const passerBtn=document.createElement("button");
+  passerBtn.textContent="Passer";
+  playersList.appendChild(passerBtn);
+  passerBtn.addEventListener("click",()=>{
+    if(!roleResult.textContent) roleResult.textContent="Tu passes ton tour.";
+    nextRoleBtn.style.display="inline-block";
+    Array.from(playersList.children).forEach(b=>b.disabled=true);
+  });
+
+  if(victimeLoup){
+    const sauverBtn=document.createElement("button");
+    sauverBtn.textContent=`Sauver ${victimeLoup}`;
+    sauverBtn.classList.add("victime");
+    playersList.appendChild(sauverBtn);
+    sauverBtn.addEventListener("click",()=>{
+      if(!victimeSauvée){
+        victimeSauvée=victimeLoup;
+        roleResult.textContent += (roleResult.textContent ? "\n" : "") + `Tu as sauvé ${victimeSauvée} ❤️`;
+      }
+      sauverBtn.disabled=true;
+      nextRoleBtn.style.display="inline-block";
+    });
+  }
+
+  joueurs.forEach(j=>{
+    if(j.nom!==victimeLoup){
+      const btn=document.createElement("button");
+      btn.textContent=`Empoisonner ${j.nom}`;
+      playersList.appendChild(btn);
+      btn.addEventListener("click",()=>{
+        if(victimePoison) return;
+        victimePoison=j.nom;
+        roleResult.textContent += (roleResult.textContent ? "\n" : "") + `Tu as empoisonné ${victimePoison} ☠️`;
+        nextRoleBtn.style.display="inline-block";
+        Array.from(playersList.children).forEach(b=>{
+          if(b.textContent.startsWith("Empoisonner")) b.disabled=true;
+        });
+      });
+    }
+  });
+}
+
+function actionVoleur(){
+  introText.textContent="Voleur, choisis un joueur pour récupérer son rôle.";
+  roleResult.textContent="";
+  playersList.innerHTML="";
+  let rolePris=null;
+  joueurs.forEach(j=>{
+    const btn=document.createElement("button");
+    btn.textContent=j.nom;
+    playersList.appendChild(btn);
+    btn.addEventListener("click",()=>{
+      if(!rolePris){
+        rolePris=j.nom;
+        const joueurChoisi=joueurs.find(p=>p.nom===rolePris);
+        roleResult.textContent=`Tu as pris le rôle de ${rolePris} (${joueurChoisi.role})`;
+        joueurChoisi.role="Villageois";
+        nextRoleBtn.style.display="inline-block";
+        Array.from(playersList.children).forEach(b=>b.disabled=true);
+      }
+    });
+  });
+}
+
+function afficherRole(role){
+  introText.textContent="";
+  roleName.textContent=role;
+  roleResult.textContent="";
+  playersList.innerHTML="";
+  nextRoleBtn.style.display="none";
+
+  voicePlayer.src=audioFiles[role];
+  voicePlayer.play().catch(()=>{});
+
+  if(role==="Cupidon"){ actionCupidon(); return; }
+  if(role==="Voyante"){ actionVoyante(); return; }
+  if(role==="Loup Garou"){ actionLoupsGarous(); return; }
+  if(role==="Sorcière"){ actionSorciere(); return; }
+  if(role==="Voleur"){ actionVoleur(); return; }
+
+  joueurs.forEach(j=>{
+    const btn=document.createElement("button");
+    btn.textContent=j.nom;
+    playersList.appendChild(btn);
+  });
+
+  nextRoleBtn.style.display="inline-block";
+  nextRoleBtn.textContent=(currentRoleIndex<rolesPresents.length-1)?"Passer au rôle suivant ➡️":"Terminer la nuit 🌞";
+}
+
+function afficherFin(){
+  phase="end";
+  roleName.textContent="🌞 Résultats de la nuit";
+  playersList.innerHTML="";
+  introText.textContent="";
+  nextRoleBtn.style.display="none";
+
+  bgMusic.pause();
+  bgMusic.currentTime=0;
+
+  // Calcul des éliminations
+  let eliminations=[];
+  if(victimeLoup && victimeLoup!==victimeSauvée){
+    const j=joueurs.find(p=>p.nom===victimeLoup);
+    eliminations.push({nom:j.nom, role:j.role});
+  }
+  if(victimePoison){
+    const j=joueurs.find(p=>p.nom===victimePoison);
+    eliminations.push({nom:j.nom, role:j.role});
+  }
+
+  // Affichage texte
+  if(eliminations.length===0){
+    roleResult.textContent="Aucun joueur n'a été éliminé cette nuit.";
+  } else {
+    let texte=`Nombre d'éliminations : ${eliminations.length}\n`;
+    eliminations.forEach(e=>texte+=`${e.nom} (${e.role})\n`);
+    roleResult.textContent=texte;
+  }
+
+  // Jouer audio selon nombre d'éliminations
+  const audioFin = audioFinNuit[eliminations.length];
+  voicePlayer.src = audioFin;
+  voicePlayer.play().catch(()=>{});
+
+  // Bouton pour passer au vote du village
+  const voteBtn=document.createElement("button");
+  voteBtn.textContent="▶️ Passer au vote du village";
+  voteBtn.classList.add("btn");
+  playersList.appendChild(voteBtn);
+  voteBtn.addEventListener("click",()=>{
+    localStorage.setItem("eliminations", JSON.stringify(eliminations));
+    window.location.href="vote.html";
+  });
+}
+
+
+startBtn.addEventListener("click",()=>{
+  phase="intro";
+  startBtn.style.display="none";
+  nextRoleBtn.style.display="none";
+
+  introText.textContent="La nuit tombe sur le village...";
+  roleName.textContent="";
+  roleResult.textContent="";
+  playersList.innerHTML="";
+
+  bgMusic.play().catch(()=>{});
+  voicePlayer.src=audioFiles.intro;
+  voicePlayer.play().catch(()=>{});
+
+  voicePlayer.onended=null;
+  voicePlayer.onended=()=>{
+    voicePlayer.onended=null;
+    if(rolesPresents.length===0){ afficherFin(); }
+    else{ phase="roles"; currentRoleIndex=0; afficherRole(rolesPresents[currentRoleIndex]); }
+  };
+});
+
+nextRoleBtn.addEventListener("click",()=>{
+  nextRoleBtn.style.display="none";
+  avancerRole();
+});
+
+function avancerRole(){
+  currentRoleIndex++;
+  if(currentRoleIndex<rolesPresents.length){ afficherRole(rolesPresents[currentRoleIndex]); }
+  else{ afficherFin(); }
+}
+</script>
 </body>
 </html>
