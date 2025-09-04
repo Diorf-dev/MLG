@@ -121,7 +121,7 @@
   <h2>Choix des rôles :</h2>
   <div class="roles">
     <div class="role"><label for="villagois">Villageois</label><input type="number" id="villagois" value="0" min="0"></div>
-    <div class="role"><label for="loups">Loup Garous</label><input type="number" id="loups" value="0" min="0"></div>
+    <div class="role"><label for="loups">Loup Garou</label><input type="number" id="loups" value="0" min="0"></div>
     <div class="role"><label for="sorciere">Sorcière</label><input type="number" id="sorciere" value="0" min="0"></div>
     <div class="role"><label for="voyante">Voyante</label><input type="number" id="voyante" value="0" min="0"></div>
     <div class="role"><label for="cupidon">Cupidon</label><input type="number" id="cupidon" value="0" min="0"></div>
@@ -218,9 +218,21 @@
       return array;
     }
 
+    // Mapping des noms de rôles pour cohérence
+    const roleMapping = {
+      villagois: "Villageois",
+      loups: "Loup Garou",
+      sorciere: "Sorcière",
+      voyante: "Voyante",
+      cupidon: "Cupidon",
+      chasseur: "Chasseur",
+      petiteFille: "Petite Fille",
+      voleur: "Voleur"
+    };
+
     // Bouton valider
     document.getElementById("valider").addEventListener("click", () => {
-      const roles = ["villagois","loups","sorciere","voyante","cupidon","chasseur","petiteFille","voleur"];
+      const roles = Object.keys(roleMapping);
       let total = 0;
       let listeRoles = [];
 
@@ -228,7 +240,7 @@
         const count = parseInt(document.getElementById(r).value) || 0;
         total += count;
         for (let i = 0; i < count; i++) {
-          listeRoles.push(r.charAt(0).toUpperCase() + r.slice(1)); // met une majuscule
+          listeRoles.push(roleMapping[r]); // Utilise le vrai nom
         }
       });
 
